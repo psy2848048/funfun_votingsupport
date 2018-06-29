@@ -258,7 +258,7 @@ class FunfunPosting(object):
 
         query = """
             UPDATE posts
-              SET is_voted = 2
+              SET is_voted = 2, voted_at = CURRENT_TIMESTAMP
             WHERE user_text_id = %s
               AND permlink = %s
         """
@@ -311,6 +311,11 @@ class FunfunPosting(object):
                 content_obj = item['operations'][0][1]
                 parent_author = content_obj['parent_author']
                 if parent_author != '' and parent_author != None:
+                    continue
+
+                json_metadata = json.loads(content_obj['json_metadata'])
+                if type(json_metadata) != dict:
+                    print(type(json_metadata) )
                     continue
 
                 tags = json.loads(content_obj['json_metadata']).get('tags', [])
