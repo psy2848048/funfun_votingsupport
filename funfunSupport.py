@@ -309,6 +309,10 @@ class FunfunPosting(object):
         for item in post_arr:
             try:
                 content_obj = item['operations'][0][1]
+                parent_author = content_obj['parent_author']
+                if parent_author != '' and parent_author != None:
+                    continue
+
                 tags = json.loads(content_obj['json_metadata']).get('tags', [])
                 author = content_obj['author']
                 original_theme = content_obj['title']
@@ -319,6 +323,11 @@ class FunfunPosting(object):
                 print(content_obj)
                 print("Error in TX!!")
                 sys.exit(1)
+
+            # Tag check
+            if "kr-funfun" not in tags:
+                print("@{}/{}: No 'kr-funfun' tag in the post".format(author, permlink))
+                continue
 
             # Theme check
             extract_theme_obj = re.search(r':(.*?)\]', original_theme)
@@ -332,11 +341,6 @@ class FunfunPosting(object):
                 print("@{}/{}: Not related in theme".format(author, permlink))
                 continue
 
-            # Tag check
-            if "kr-funfun" not in tags:
-                print("@{}/{}: No 'kr-funfun' tag in the post".format(author, permlink))
-                continue
-            
             # User check
             user_id = self._getUserId(author)
             if user_id == -1:
