@@ -308,21 +308,29 @@ class FunfunPosting(object):
         filtered_result = []
         for item in post_arr:
             try:
-                content_obj = item['operations'][0][1]
-                parent_author = content_obj['parent_author']
-                if parent_author != '' and parent_author != None:
+                operations = item.get('operations')
+                if operations == None:
+                    print("An important info is null")
                     continue
 
-                json_metadata = json.loads(content_obj['json_metadata'])
-                if type(json_metadata) != dict:
-                    print(type(json_metadata) )
+                content_obj = operations[0][1]
+                parent_author = content_obj.get('parent_author')
+
+                try:
+                    json_metadata = json.loads(content_obj['json_metadata'])
+
+                except:
                     continue
 
-                tags = json.loads(content_obj['json_metadata']).get('tags', [])
-                author = content_obj['author']
-                original_theme = content_obj['title']
-                permlink = content_obj['permlink']
-                written_at = item['expiration']
+                tags = json_metadata.get('tags', [])
+                author = content_obj.get('author')
+                original_theme = content_obj.get('title')
+                permlink = content_obj.get('permlink')
+                written_at = item.get('expiration')
+
+                if author == None or original_theme == None or permlink == None or parent_author == None:
+                    print("@{}/{}: An important info is null".format(author, permlink))
+                    continue
 
             except:
                 print(content_obj)
