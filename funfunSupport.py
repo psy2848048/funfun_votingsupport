@@ -249,7 +249,7 @@ class FunfunPosting(object):
                   "trx_id": "1d0490ac6aea885b373a5dc0f1bebb22d9f9fd96"
                 }
             """
-            ret = self.steem.vote(post, 30, "funfund")
+            ret = self.steem.vote(post, 100, "funfund")
 
         except:
             traceback.print_exc()
