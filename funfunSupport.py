@@ -307,13 +307,18 @@ class FunfunPosting(object):
         """
         filtered_result = []
         for item in post_arr:
-            content_obj = item['operations'][0][1]
-            print(content_obj)
-            tags = json.loads(content_obj['json_metadata']).get('tags', [])
-            author = content_obj['author']
-            original_theme = content_obj['title']
-            permlink = content_obj['permlink']
-            written_at = item['expiration']
+            try:
+                content_obj = item['operations'][0][1]
+                tags = json.loads(content_obj['json_metadata']).get('tags', [])
+                author = content_obj['author']
+                original_theme = content_obj['title']
+                permlink = content_obj['permlink']
+                written_at = item['expiration']
+
+            except:
+                print(content_obj)
+                print("Error in TX!!")
+                sys.exit(1)
 
             # Theme check
             extract_theme_obj = re.search(r':(.*?)\]', original_theme)
@@ -367,7 +372,6 @@ class FunfunPosting(object):
                 filtered_posts = self.filterPosts(ret)
                 if len(filtered_posts) > 0:
                     print("Gathered {} kr-funfun posts!".format( len(filtered_posts) ))
-                    input('Press enter to proceed...')
 
                 for item in filtered_posts:
                     print("Voting @{}/{}..".format(item['user_text_id'], item['permlink']))
