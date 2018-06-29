@@ -318,11 +318,11 @@ class FunfunPosting(object):
 
                 try:
                     json_metadata = json.loads(content_obj['json_metadata'])
+                    tags = json_metadata.get('tags', [])
 
                 except:
                     continue
 
-                tags = json_metadata.get('tags', [])
                 author = content_obj.get('author')
                 original_theme = content_obj.get('title')
                 permlink = content_obj.get('permlink')
@@ -333,6 +333,7 @@ class FunfunPosting(object):
                     continue
 
             except:
+                traceback.print_exc()
                 print(content_obj)
                 print("Error in TX!!")
                 sys.exit(1)
