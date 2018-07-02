@@ -366,11 +366,6 @@ class FunfunPosting(object):
                 print("@{}/{}: User {} is not member of kr-funfun".format(author, permlink, author))
                 continue
 
-            # Tag check
-            if "kr-funfun" not in tags:
-                print("@{}/{}: No 'kr-funfun' tag in the post".format(author, permlink))
-                continue
-            
             # Theme check
             is_regular = False
             extract_theme_obj = re.search(r':(.*?)\]', original_theme)
