@@ -210,13 +210,18 @@ class FunfunPosting(object):
         """
         try:
             cursor.execute(query, (user_id, theme_id, user_text_id, permlink, tags, written_at, is_regular, ))
+
+        except pymysql.err.IntegrityError:
+            print("Duplicated or revised post")
+            return False, 1
+
         except:
             traceback.print_exc()
             self.conn.rollback()
-            return False
+            return False, 2
 
         self.conn.commit()
-        return True
+        return True, 0
 
     def _voting(self, user_text_id, permlink, is_regular=False):
         cursor = self.conn.cursor()
@@ -371,8 +376,8 @@ class FunfunPosting(object):
                     is_regular = True
 
             string_tags = ','.join(tags)
-            is_ok = self._insertPostInfo(user_id, theme_id, author, permlink, string_tags, written_at, is_regular)
-            if is_ok == False:
+            is_ok, code = self._insertPostInfo(user_id, theme_id, author, permlink, string_tags, written_at, is_regular)
+            if is_ok == False and code >= 2:
                 self.conn.rollback()
                 print("Something wrong in writing funfun posts")
                 sys.exit(1)
