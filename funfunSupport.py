@@ -224,7 +224,10 @@ class FunfunPosting(object):
         self.conn.commit()
         return True, 0
 
-    def _voting(self, user_text_id, permlink, is_regular=False):
+    def _voting(self, user_text_id, permlink, is_regular=False, is_voted=False):
+        if is_voted == True:
+            return True
+
         cursor = self.conn.cursor()
         query = """
             UPDATE posts
@@ -381,12 +384,20 @@ class FunfunPosting(object):
 
             string_tags = ','.join(tags)
             is_ok, code = self._insertPostInfo(user_id, theme_id, author, permlink, string_tags, written_at, is_regular)
+            is_voted = False
             if is_ok == False and code >= 2:
                 self.conn.rollback()
                 print("Something wrong in writing funfun posts")
                 sys.exit(1)
 
-            filtered_result.append({"user_text_id": author, "permlink": permlink, "is_regular":is_regular})
+            elif is_ok == False and code == 1:
+                self.conn.rollback()
+                is_voted = True
+
+            else:
+                is_voted = False
+
+            filtered_result.append({"user_text_id": author, "permlink": permlink, "is_regular":is_regular, "is_voted":is_voted})
 
         self.conn.commit()
         return filtered_result
@@ -411,7 +422,7 @@ class FunfunPosting(object):
 
                 for item in filtered_posts:
                     print("Voting @{}/{}..".format(item['user_text_id'], item['permlink']))
-                    is_ok = self._voting(item['user_text_id'], item['permlink'], item['is_regular'])
+                    is_ok = self._voting(item['user_text_id'], item['permlink'], item['is_regular'], item['is_voted'])
                     if is_ok == False:
                         print("Something wrong in @{}/{}".format(item['user_text_id'], item['permlink']))
                         self.conn.rollback()
