@@ -6,6 +6,7 @@ import sys
 import re
 
 from steem import Steem
+import steembase
 from steem.blockchain import Blockchain
 from dbConn import DBActions
 import config
@@ -259,6 +260,9 @@ class FunfunPosting(object):
                 rate = 100
 
             ret = self.steem.vote(post, rate, "funfund")
+
+        except steembase.exceptions.RPCError:
+            print("Already voted!")
 
         except:
             traceback.print_exc()
