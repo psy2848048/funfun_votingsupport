@@ -10,6 +10,7 @@ import steembase
 from steem.blockchain import Blockchain
 from dbConn import DBActions
 import config
+import pymysql
 
 # 스팀잇에서 현황 긁어오는데 사용
 
