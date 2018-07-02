@@ -361,6 +361,7 @@ class FunfunPosting(object):
             # Theme check
             is_regular = False
             extract_theme_obj = re.search(r':(.*?)\]', original_theme)
+            theme_id = -1
             if extract_theme_obj != None:
                 theme = extract_theme_obj.group(1).strip()
                 theme_id = self._findThemeId(theme)
