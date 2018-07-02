@@ -200,16 +200,16 @@ class FunfunPosting(object):
 
         return ret['id']
 
-    def _insertPostInfo(self, user_id, theme_id, user_text_id, permlink, tags, written_at):
+    def _insertPostInfo(self, user_id, theme_id, user_text_id, permlink, tags, written_at, is_regular=False):
         cursor = self.conn.cursor()
         query = """
             INSERT INTO posts
-              (user_id, theme_id, user_text_id, permlink, tags, written_at, is_voted)
+              (user_id, theme_id, user_text_id, permlink, tags, written_at, is_voted, is_regular)
             VALUES
-              (%s,      %s,       %s,           %s,       %s,   %s,         0)
+              (%s,      %s,       %s,           %s,       %s,   %s,         0,        %s)
         """
         try:
-            cursor.execute(query, (user_id, theme_id, user_text_id, permlink, tags, written_at, ))
+            cursor.execute(query, (user_id, theme_id, user_text_id, permlink, tags, written_at, is_regular, ))
         except:
             traceback.print_exc()
             self.conn.rollback()
@@ -218,7 +218,7 @@ class FunfunPosting(object):
         self.conn.commit()
         return True
 
-    def _voting(self, user_text_id, permlink):
+    def _voting(self, user_text_id, permlink, is_regular=False):
         cursor = self.conn.cursor()
         query = """
             UPDATE posts
@@ -249,7 +249,11 @@ class FunfunPosting(object):
                   "trx_id": "1d0490ac6aea885b373a5dc0f1bebb22d9f9fd96"
                 }
             """
-            ret = self.steem.vote(post, 100, "funfund")
+            rate = 50
+            if is_regular == True:
+                rate = 100
+
+            ret = self.steem.vote(post, rate, "funfund")
 
         except:
             traceback.print_exc()
@@ -343,32 +347,36 @@ class FunfunPosting(object):
                 print("@{}/{}: No 'kr-funfun' tag in the post".format(author, permlink))
                 continue
 
-            # Theme check
-            extract_theme_obj = re.search(r':(.*?)\]', original_theme)
-            if extract_theme_obj == None:
-                print("@{}/{}: Not funfun posts".format(author, permlink))
-                continue
-
-            theme = extract_theme_obj.group(1).strip()
-            theme_id = self._findThemeId(theme)
-            if theme_id == -1:
-                print("@{}/{}: Not related in theme".format(author, permlink))
-                continue
-
             # User check
             user_id = self._getUserId(author)
             if user_id == -1:
                 print("@{}/{}: User {} is not member of kr-funfun".format(author, permlink, author))
                 continue
 
+            # Tag check
+            if "kr-funfun" not in tags:
+                print("@{}/{}: No 'kr-funfun' tag in the post".format(author, permlink))
+                continue
+            
+            # Theme check
+            is_regular = False
+            extract_theme_obj = re.search(r':(.*?)\]', original_theme)
+            if extract_theme_obj != None:
+                theme = extract_theme_obj.group(1).strip()
+                theme_id = self._findThemeId(theme)
+                if theme_id == -1:
+                    is_regular = False
+                else:
+                    is_regular = True
+
             string_tags = ','.join(tags)
-            is_ok = self._insertPostInfo(user_id, theme_id, author, permlink, string_tags, written_at)
+            is_ok = self._insertPostInfo(user_id, theme_id, author, permlink, string_tags, written_at, is_regular)
             if is_ok == False:
                 self.conn.rollback()
                 print("Something wrong in writing funfun posts")
                 sys.exit(1)
 
-            filtered_result.append({"user_text_id": author, "permlink": permlink})
+            filtered_result.append({"user_text_id": author, "permlink": permlink, "is_regular":is_regular})
 
         self.conn.commit()
         return filtered_result
@@ -393,7 +401,7 @@ class FunfunPosting(object):
 
                 for item in filtered_posts:
                     print("Voting @{}/{}..".format(item['user_text_id'], item['permlink']))
-                    is_ok = self._voting(item['user_text_id'], item['permlink'])
+                    is_ok = self._voting(item['user_text_id'], item['permlink'], item['is_regular'])
                     if is_ok == False:
                         print("Something wrong in @{}/{}".format(item['user_text_id'], item['permlink']))
                         self.conn.rollback()
