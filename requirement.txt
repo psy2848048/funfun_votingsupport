@@ -1,7 +1,7 @@
 appdirs==1.4.3
 certifi==2018.4.16
 click==6.7
-ecdsa==0.13
+ecdsa==0.13.3
 Flask==1.0.2
 funcy==1.10.2
 future==0.16.0
